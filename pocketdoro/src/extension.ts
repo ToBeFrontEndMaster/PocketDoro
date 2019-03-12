@@ -2,25 +2,59 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
+let myStatusBarItem: vscode.StatusBarItem;
+
+let status: string;
+const REST_STATUS = 'REST_STATUS';
+const WORK_STATUS = 'WORK_STATUS';
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export function activate({ subscriptions }: vscode.ExtensionContext) {
+  // register a command that is invoked when the status bar
+  // item is selected
+  const myCommandId = 'extension.digidoro';
+  subscriptions.push(vscode.commands.registerCommand(myCommandId, () => {}));
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-		console.log('Congratulations, your extension "pocketdoro" is now active!');
+  // create a new status bar item that we can now manage
+  myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  myStatusBarItem.command = myCommandId;
+  myStatusBarItem.show();
+  subscriptions.push(myStatusBarItem);
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('extension.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
+  // update status bar item once at start
+  updateStatusBarItem(10);
+}
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World!');
-	});
+function updateStatusBarItem(restTime: Number): void {
+  let n = 0;
+  setInterval(() => {
+    if (status === REST_STATUS) {
+      return;
+    }
+    n++;
+    myStatusBarItem.text = `$(megaphone) working ${n} time`;
+    if (restTime === n) {
+      n = 0;
+      status = REST_STATUS;
+      myStatusBarItem.text = `$(megaphone) working ${n} time`;
+      rest();
+    }
+  }, 1000);
+}
 
-	context.subscriptions.push(disposable);
+function getNumberOfSelectedLines(editor: vscode.TextEditor | undefined): number {
+  let lines = 0;
+  if (editor) {
+    lines = editor.selections.reduce((prev, curr) => prev + (curr.end.line - curr.start.line), 0);
+  }
+  return lines;
+}
+
+function rest() {
+  vscode.window.showInformationMessage('Hello World!', { modal: true }).then(() => {
+    rest();
+  });
 }
 
 // this method is called when your extension is deactivated
