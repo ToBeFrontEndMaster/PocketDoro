@@ -1,1 +1,3 @@
 /pocketdoro/node_modules
+.DS_Store
+pocketdoro/out
